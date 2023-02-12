@@ -13,15 +13,20 @@ import tqdm
 import os
 import overpy
 import argparse
+from concurrent import futures
 
 
 MAPBOX_TOKEN = 'XXX'
 MAPBOX_TILESET_ID = 'mapbox.satellite'
 TILES_URL = 'https://api.tiles.mapbox.com/v4/' + MAPBOX_TILESET_ID + '/{z}/{x}/{y}.png?access_token=' + MAPBOX_TOKEN
+PARALLEL_THREADS_NUM = 8
 
 
-def get_sat_img(lat, lon, name: str):
+def get_sat_img(lat, lon, name: str, pbar=None):
     filename = str(name)+'.jpg'
+
+    if pbar:
+        pbar.update(1)
 
     if os.path.exists(filename):
         print(f'Satellite image {filename} already exists!')
@@ -80,12 +85,14 @@ if __name__ == '__main__':
         coords_file = json.load(open(args.overpass_results_file))
         coords = coords_file['elements']
 
+        img_args = []
         for c in tqdm.tqdm(coords):
             try:
                 lat = c.get('lat', c['geometry'][0]['lat'])
                 lon = c.get('lon', c['geometry'][0]['lon'])
                 name = str(c['id'])
-                get_sat_img(lat, lon, name)
+                img_args.append((lat, lon, name))
+                # get_sat_img(lat, lon, name)
             except Exception as e:
                 print(f'Error while trying to get coords: {str(e)}')
 
@@ -112,11 +119,19 @@ if __name__ == '__main__':
         result = api.query(text)
         print(f'Found: {len(result.nodes)} nodes, {len(result.ways)} ways, {len(result.relations)} relations')
 
+        img_args = []
         print('Processing nodes...')
         for c in tqdm.tqdm(result.nodes):
-            get_sat_img(c.lat, c.lon, c.id)
+            # get_sat_img(c.lat, c.lon, c.id)
+            img_args.append((c.lat, c.lon, c.id))
 
         print('Processing ways...')
         for c in tqdm.tqdm(result.ways):
             nodes = c.get_nodes(resolve_missing=True)
-            get_sat_img(float(nodes[0].lat), float(nodes[0].lon), c.id)
+            img_args.append((float(nodes[0].lat), float(nodes[0].lon), c.id))
+            # get_sat_img(float(nodes[0].lat), float(nodes[0].lon), c.id)
+
+    # run
+    pbar = tqdm.tqdm(total=len(img_args))
+    with futures.ThreadPoolExecutor(max_workers=PARALLEL_THREADS_NUM) as executor:
+        future_test_results = [ executor.submit(get_sat_img, *a, pbar) for a in img_args ]
