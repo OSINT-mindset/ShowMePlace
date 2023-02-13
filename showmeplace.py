@@ -22,7 +22,7 @@ TILES_URL = 'https://api.tiles.mapbox.com/v4/' + MAPBOX_TILESET_ID + '/{z}/{x}/{
 PARALLEL_THREADS_NUM = 8
 
 
-def get_sat_img(lat, lon, name: str, pbar=None):
+def _get_sat_img(lat, lon, name: str, pbar=None):
     filename = str(name)+'.jpg'
 
     if pbar:
@@ -30,7 +30,7 @@ def get_sat_img(lat, lon, name: str, pbar=None):
 
     if os.path.exists(filename):
         print(f'Satellite image {filename} already exists!')
-        return
+        return False
 
     # workaround for old png images
     png_filename = str(name) + '.png'
@@ -40,7 +40,7 @@ def get_sat_img(lat, lon, name: str, pbar=None):
         print(f'Converting {filename} to {png_filename}...')
         rgb_im.save(filename)
         os.remove(png_filename)
-        return
+        return False
 
     url = f'https://www.google.com/maps/@{lat},{lon},17.5z'
     print(f'Saving {lat}, {lon} to {filename}, check place in {url}')
@@ -66,6 +66,15 @@ def get_sat_img(lat, lon, name: str, pbar=None):
     rgb_im = img.convert('RGB')
     rgb_im.save(filename)
 
+    return True
+
+
+def get_sat_img(lat, lon, name: str, pbar=None):
+    try:
+        return _get_sat_img(lat, lon, name, pbar)
+    except Exception as e:
+        print(f'Error: {str(e)}')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -78,6 +87,8 @@ if __name__ == '__main__':
     group.add_argument('--overpass-request-file', type=str)
     group.add_argument('--overpass-results-file', type=str)
 
+    parser.add_argument('--no-ways', action='store_true', default=False)
+
     args = parser.parse_args()
 
     if args.overpass_results_file:
@@ -87,6 +98,8 @@ if __name__ == '__main__':
 
         img_args = []
         for c in tqdm.tqdm(coords):
+            if args.no_ways and not 'lat' in c:
+                continue
             try:
                 lat = c.get('lat', c['geometry'][0]['lat'])
                 lon = c.get('lon', c['geometry'][0]['lon'])
@@ -114,7 +127,7 @@ if __name__ == '__main__':
             with open(args.overpass_request_file) as f:
                 text = f.read()
 
-        print('Making request to Overpass API....')
+        print('Making request to Overpass API, please, wait...')
 
         result = api.query(text)
         print(f'Found: {len(result.nodes)} nodes, {len(result.ways)} ways, {len(result.relations)} relations')
@@ -125,13 +138,18 @@ if __name__ == '__main__':
             # get_sat_img(c.lat, c.lon, c.id)
             img_args.append((c.lat, c.lon, c.id))
 
-        print('Processing ways...')
-        for c in tqdm.tqdm(result.ways):
-            nodes = c.get_nodes(resolve_missing=True)
-            img_args.append((float(nodes[0].lat), float(nodes[0].lon), c.id))
-            # get_sat_img(float(nodes[0].lat), float(nodes[0].lon), c.id)
+        if not args.no_ways:
+            print('Processing ways...')
+            for c in tqdm.tqdm(result.ways):
+                nodes = c.get_nodes(resolve_missing=True)
+                img_args.append((float(nodes[0].lat), float(nodes[0].lon), c.id))
+                # get_sat_img(float(nodes[0].lat), float(nodes[0].lon), c.id)
 
+    future_test_results = []
     # run
     pbar = tqdm.tqdm(total=len(img_args))
     with futures.ThreadPoolExecutor(max_workers=PARALLEL_THREADS_NUM) as executor:
         future_test_results = [ executor.submit(get_sat_img, *a, pbar) for a in img_args ]
+
+    for _ in future_test_results:
+        pass
