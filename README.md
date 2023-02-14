@@ -6,8 +6,8 @@ This tool shows satellite images for certain coordinates (latitude and longitude
 1. Create a mapbox account here: www.mapbox.com. 
 2. Once logged in, scroll down to Default Public Token. Copy it! You will need it in the `shomewplace.py` file
 3. Make sure you have downloaded and installed GeckoDriver in your computer. You can get it here: https://github.com/mozilla/geckodriver/releases
-4. Store the GeckoDriver.exe file in your root folder
-5. Run the ExtractSatelliteImages.py file. More explanations are in the comments
+4. Store the geckodriver executable in your root/bin folder
+5. Run the showmeplace.py file
 
 # Usage
 
@@ -53,6 +53,29 @@ Satellite image 88081666.jpg already exists!
 Saving 44.9733591, -92.7328901 to 242000245.jpg, check place in https://www.google.com/maps/@44.9733591,-92.7328901,17.5z
 ...
 ```
+
+Batch processing mode: split big territory for search into small parts (step*step, see source code) and run overpass search for each part.
+
+```sh
+# generate N files for the bounding box from request file batch.txt
+$ ./showmeplace.py --generate-overpass-files 24.806681353851964,-126.5185546875,53.4357192066942,-65.3466796875 --overpass-request-file batch.txt
+
+# request template
+$ cat batch.txt
+[out:json][timeout:800];
+(
+  nwr["power"="tower"]["design"="barrel"]["material"="steel"]["structure"="tubular"]({{bbox}});
+)->.tower;
+
+(
+  nwr(around.tower:100)["highway"="stop"];
+)->.sign;
+
+out geom;
+
+# run batch processing (fix shell script if you changed step)
+$ ./batch.sh
+...
 
 # Results
 
