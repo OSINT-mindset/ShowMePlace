@@ -14,12 +14,14 @@ import os
 import overpy
 import argparse
 from concurrent import futures
+import sys
 
 
 MAPBOX_TOKEN = 'XXX'
 MAPBOX_TILESET_ID = 'mapbox.satellite'
 TILES_URL = 'https://api.tiles.mapbox.com/v4/' + MAPBOX_TILESET_ID + '/{z}/{x}/{y}.png?access_token=' + MAPBOX_TOKEN
-PARALLEL_THREADS_NUM = 8
+PARALLEL_THREADS_NUM = 4
+OVERPASS_SERVER = 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
 
 
 def _get_sat_img(lat, lon, name: str, pbar=None):
@@ -42,7 +44,8 @@ def _get_sat_img(lat, lon, name: str, pbar=None):
         os.remove(png_filename)
         return False
 
-    url = f'https://www.google.com/maps/@{lat},{lon},17.5z'
+    url = f'https://www.instantstreetview.com/@{lat},{lon},-132.4h,5p,1z'
+    # url = f'https://www.google.com/maps/@{lat},{lon},17.5z'
     print(f'Saving {lat}, {lon} to {filename}, check place in {url}')
     print()
 
@@ -88,8 +91,54 @@ if __name__ == '__main__':
     group.add_argument('--overpass-results-file', type=str)
 
     parser.add_argument('--no-ways', action='store_true', default=False)
+    parser.add_argument('--generate-overpass-files', type=str, help='Coords in format lat1,lon1,lat2,lon2')
 
     args = parser.parse_args()
+
+    if args.generate_overpass_files:
+        with open(args.overpass_request_file) as f:
+                text = f.read()
+        print('Loaded requests...')
+        if not '{{bbox}}' in text:
+            print('Text of request should include {{bbox}} pseudovariable!')
+            sys.exit(1)
+
+        # 24.806681353851964,-126.5185546875,53.4357192066942,-65.3466796875
+        coords = list(map(float, args.generate_overpass_files.split(',')))
+        print(coords)
+        api = overpy.Overpass(url=OVERPASS_SERVER)
+
+        step = 20
+        delta_x = (coords[2] - coords[0]) / step
+        delta_y = (coords[3] - coords[1]) / step
+
+        all_coords = []
+        for i in range(step):
+            for j in range(step):
+                new_coords = [
+                    coords[0]+i*delta_x,
+                    coords[1]+j*delta_y,
+                    coords[0]+(i+1)*delta_x,
+                    coords[1]+(j+1)*delta_y,
+                ]
+                all_coords.append(new_coords)
+
+        print(f'Total areas: {len(all_coords)}')
+
+        # try to run request for the first area
+        new_text = text.replace('{{bbox}}', ','.join(map(str, all_coords[0])))
+        print(new_text)
+
+        result = api.query(new_text)
+
+        for i, c in enumerate(all_coords):
+            new_text = text.replace('{{bbox}}', ','.join(map(str, all_coords[i])))
+            filename = args.overpass_request_file+f'_{str(i)}'
+            with open(filename, 'w') as f:
+                f.write(new_text)
+            print(f'Write {filename}')
+
+        sys.exit(0)
 
     if args.overpass_results_file:
         print('Loading coords from Overpass results file...')
@@ -110,7 +159,7 @@ if __name__ == '__main__':
                 print(f'Error while trying to get coords: {str(e)}')
 
     else:  # if overpass
-        api = overpy.Overpass()
+        api = overpy.Overpass(url=OVERPASS_SERVER, max_retry_count=5)
         text = ''
 
         if args.overpass_request:
@@ -124,6 +173,7 @@ if __name__ == '__main__':
                     break
             text = '\n'.join(lines)
         elif args.overpass_request_file:
+            print(f'Processing file {args.overpass_request_file}...')
             with open(args.overpass_request_file) as f:
                 text = f.read()
 

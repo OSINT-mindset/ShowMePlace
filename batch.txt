@@ -1,0 +1,10 @@
+[out:json][timeout:800];
+(
+  nwr["power"="tower"]["design"="barrel"]["material"="steel"]["structure"="tubular"]({{bbox}});
+)->.tower;
+
+(
+  nwr(around.tower:100)["highway"="stop"];  
+)->.sign;
+
+out geom;
