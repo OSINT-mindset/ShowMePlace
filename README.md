@@ -3,11 +3,11 @@
 This tool shows satellite images for certain coordinates (latitude and longitude) by Overpass API request / raw response
 
 # Instructions
+0. Установите себе Python 3.
 1. Create a mapbox account here: www.mapbox.com. 
 2. Once logged in, scroll down to Default Public Token. Copy it! You will need it in the `shomewplace.py` file
-3. Make sure you have downloaded and installed GeckoDriver in your computer. You can get it here: https://github.com/mozilla/geckodriver/releases
-4. Store the geckodriver executable in your root/bin folder
-5. Run the showmeplace.py file
+3. Make sure you have downloaded and installed GeckoDriver in your computer in program or bin folder. You can get it here: https://github.com/mozilla/geckodriver/releases
+4. Run the showmeplace.py file
 
 # Usage
 
@@ -75,7 +75,7 @@ out geom;
 
 # run batch processing (fix shell script if you changed step)
 $ ./batch.sh
-...
+```
 
 # Results
 
