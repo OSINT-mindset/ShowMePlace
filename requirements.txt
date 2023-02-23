@@ -1,3 +1,5 @@
-folium
-overpy
-Pillow
+folium==0.14.0
+overpy==0.6
+Pillow==9.4.0
+selenium==4.8.2
+tqdm==4.64.1
