@@ -9,6 +9,11 @@ This tool shows satellite images for certain coordinates (latitude and longitude
 3. Make sure you have downloaded and installed GeckoDriver in your computer in program or bin folder. You can get it here: https://github.com/mozilla/geckodriver/releases
 4. Run the showmeplace.py file
 
+# Theory
+
+- [OSINT/GEOINT - Investigating and geolocating #2 - Overpass Turbo](https://haax.fr/en/writeups/osint-geoint/osint-flight-volume2-overpassturbo/)
+- [Overpass Turbo and Night GEOINT](https://www.youtube.com/watch?v=h-_Z7xHGEh4)
+
 # Usage
 
 ```sh
