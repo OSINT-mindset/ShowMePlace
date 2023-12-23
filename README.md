@@ -16,6 +16,12 @@ This tool shows satellite images for certain coordinates (latitude and longitude
 
 # Usage
 
+The main value of the tool is the ability to do batch checks for big regions, but you can do simple request also.
+
+## Simple execution without params
+
+You must copy the prepared request in **Overpass => Export => Request** panel (without `{{variables}}`).
+
 ```sh
 $ ./showmeplace.py --overpass-request
 Paste Overpass API request text, then enter END to run
@@ -33,7 +39,7 @@ Making request to Overpass API...
 ...
 ```
 
-You must copy prepared request in Overpass => Export => Request panel (without `{{variables}}`).
+## Simple execution without params from file
 
 Also you can use a file:
 
@@ -49,6 +55,8 @@ Saving 44.9733591, -92.7328901 to 242000245.jpg, check place in https://www.goog
 ...
 ```
 
+## Execution of raw json request
+
 You can use raw Overpass API from Overpass => Export => Data => raw
 
 ```sh
@@ -59,13 +67,13 @@ Saving 44.9733591, -92.7328901 to 242000245.jpg, check place in https://www.goog
 ...
 ```
 
-Batch processing mode: split big territory for search into small parts (step*step, see source code) and run overpass search for each part.
+## Batch processing mode (Use it for big territory scanning!)
+
+The idea of a batch processing mode: split big territory for search into small parts (step*step, see source code) and run overpass search for each part.
+
+1. Put request to some txt file.
 
 ```sh
-# generate N files for the bounding box from request file batch.txt
-$ ./showmeplace.py --generate-overpass-files 24.806681353851964,-126.5185546875,53.4357192066942,-65.3466796875 --overpass-request-file batch.txt
-
-# request template
 $ cat batch.txt
 [out:json][timeout:800];
 (
@@ -77,11 +85,22 @@ $ cat batch.txt
 )->.sign;
 
 out geom;
+```
 
-# run batch processing (fix shell script if you changed step)
+2. Generate N files for the bounding box from the request file batch.txt. You can copy bounding box coordinates from the Overpass interface by doing **Overpass => Export => Request**.
+
+```sh
+$ ./showmeplace.py --generate-overpass-files 24.806681353851964,-126.5185546875,53.4357192066942,-65.3466796875 --overpass-request-file batch.txt
+```
+
+Check that you have a lot of files with filenames of format `batch.txt_0`
+
+3. Run batch processing (advanced: fix shell script on your own if the script is failing and you have to change mileage = step).
+
+```
 $ ./batch.sh
 ```
 
 # Results
 
-You'll get JPG files in the directory of script with satellite images of target coordinates in the closest approximation 👍
+You'll get JPG files in the directory of the script with satellite images of target coordinates in the closest approximation 👍
