@@ -9,6 +9,16 @@ This tool shows satellite images for certain coordinates (latitude and longitude
 3. Make sure you have downloaded and installed GeckoDriver in your computer in program or bin folder. You can get it here: https://github.com/mozilla/geckodriver/releases
 4. Run the showmeplace.py file
 
+You can use other satellite image providers (example in the file `shomewplace.py`).
+But in some places there may not be detailed images. In this case, try reducing the `max_zoom` parameter.
+
+## Docker
+
+```bash
+docker build . -t showmeplace
+docker run -it -v ./output:/showmeplace/output showmeplace ./showmeplace.py --overpass-request
+```
+
 # Theory
 
 - [OSINT/GEOINT - Investigating and geolocating #2 - Overpass Turbo](https://haax.fr/en/writeups/osint-geoint/osint-flight-volume2-overpassturbo/)
@@ -26,18 +36,16 @@ You must copy the prepared request in **Overpass => Export => Request** panel (w
 $ ./showmeplace.py --overpass-request
 Paste Overpass API request text, then enter END to run
 [out:json][timeout:800];
-(
-  nwr["addr:housenumber"="1832"](44.80230124552821,-93.52729797363281,45.22025894300122,-92.7252960205078);
-)->.house;
-
-(.house;);
-
-out geom;
+nwr["addr:housenumber"="1832"](44.80230124552821,-93.52729797363281,45.22025894300122,-92.7252960205078);
+out center;
 END
 
 Making request to Overpass API...
 ...
 ```
+
+> [!WARNING]
+> add the `center` argument to the `out` statement. This will speed up data processing and place the object in the center of the image.
 
 ## Simple execution without params from file
 
@@ -84,7 +92,7 @@ $ cat batch.txt
   nwr(around.tower:100)["highway"="stop"];
 )->.sign;
 
-out geom;
+out center geom;
 ```
 
 2. Generate N files for the bounding box from the request file batch.txt. You can copy bounding box coordinates from the Overpass interface by doing **Overpass => Export => Request**.

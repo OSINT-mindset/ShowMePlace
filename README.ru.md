@@ -9,6 +9,9 @@
 3. Скачайте для вашей операционной системы GeckoDriver и положите его в директорию с программой или директорию из PATH. Скачать можно отсюда: https://github.com/mozilla/geckodriver/releases
 4. Запустите файл `showmeplace.py`
 
+Вы можете использовать других поставщиков спутниковых снимков (пример в файле `shomewplace.py`).
+Но в некоторых местах может не быть детальных снимков. В таком случае попробуйте уменьшить параметр max_zoom.
+
 # Примеры использования
 
 Запуск со вводом запроса Overpass прямо в командной строке:
@@ -22,12 +25,15 @@ Paste Overpass API request text, then enter END to run
 
 (.house;);
 
-out geom;
+out center geom;
 END
 
 Making request to Overpass API...
 ...
 ```
+
+> [!WARNING] 
+> добавляйте в оператор `out` аргумент `center`. Это ускорит обработку данных и разместит объект по центру снимка
 
 Можно использовать подготовленный файл с запросом из Overpasss Turbo (он не должен содержать переменных в двойных фигурных скобах, {{таких}}).
 Пункт меню Overpass => Export => Request panel.
@@ -71,7 +77,7 @@ $ cat batch.txt
   nwr(around.tower:100)["highway"="stop"];
 )->.sign;
 
-out geom;
+out center geom;
 
 # запускаем пакетную обработку запросов (важно не забыть поправить переменную step в скрипте)
 $ ./batch.sh
