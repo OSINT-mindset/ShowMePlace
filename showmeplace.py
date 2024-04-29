@@ -5,8 +5,6 @@
 #https://github.com/thewati
 #https://medium.com/@watipasomulwafu
 
-import folium
-import io
 import json
 from PIL import Image
 import tqdm
@@ -15,29 +13,27 @@ import overpy
 import argparse
 from concurrent import futures
 import sys
+from staticmap import StaticMap, CircleMarker
 
 
 MAPBOX_TOKEN = ''
 
 
 class TileSet:
-    def __init__(self, tiles_url, attr, max_zoom=25):
+    def __init__(self, tiles_url, attr):
         self.tiles_url = tiles_url
         self.attr = attr
-        self.max_zoom = max_zoom
 
 
 tilesets = [
     # you can add custom tiles. For example, uncomment this:
     # TileSet(
     #     'https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    #     'ESRI',
-    #     max_zoom=18
+    #     'ESRI'
     # ),
     # TileSet(
     #     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     #     'OSM',
-    #     max_zoom=19
     # ),
 ]
 
@@ -47,7 +43,7 @@ if MAPBOX_TOKEN != "":
         'Mapbox',
     ))
 
-PARALLEL_THREADS_NUM = max(4, 2 * len(tilesets))
+PARALLEL_THREADS_NUM = len(tilesets)
 OVERPASS_SERVER = 'https://overpass-api.de/api/interpreter'
 
 
@@ -76,27 +72,10 @@ def _get_sat_img(lat, lon, name: str, obj_type: str, pbar=None, folder="", tiles
     print(f'Saving {lat}, {lon} to {filename}, check place in {url}')
     print()
 
-    m = folium.Map(
-        location=[lat, lon],
-        zoom_start=tileset.max_zoom,
-        tiles=tileset.tiles_url,
-        attr=tileset.attr,
-        zoom_control=False
-    )
-
-    marker = folium.map.FeatureGroup()
-    marker.add_child(
-        folium.features.CircleMarker(
-            [lat, lon], radius = 5,
-            color = 'red', fill_color = 'Red'
-        )
-    )
-    m.add_child(marker)
-
-    img_data = m._to_png(4)
-    img = Image.open(io.BytesIO(img_data))
-    rgb_im = img.convert('RGB')
-    rgb_im.save(filename)
+    m = StaticMap(1366, 768, 10, url_template=tileset.tiles_url, delay_between_retries=2)
+    m.add_marker(CircleMarker((float(lon), float(lat)), 'red', 5))
+    image = m.render()
+    image.save(filename)
 
     return True
 

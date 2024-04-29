@@ -4,20 +4,12 @@ This tool shows satellite images for certain coordinates (latitude and longitude
 
 # Instructions
 0. Install Python 3.
-1. Create a mapbox account here: www.mapbox.com. 
-2. Once logged in, scroll down to Default Public Token. Copy it! You will need it in the `shomewplace.py` file
-3. Make sure you have downloaded and installed GeckoDriver in your computer in program or bin folder. You can get it here: https://github.com/mozilla/geckodriver/releases
+1. Install dependencies `pip install -r requirements.txt`
+2. Create a mapbox account here: www.mapbox.com. 
+3. Once logged in, scroll down to Default Public Token. Copy it! You will need it in the `shomewplace.py` file
 4. Run the showmeplace.py file
 
-You can use other satellite image providers (example in the file `shomewplace.py`).
-But in some places there may not be detailed images. In this case, try reducing the `max_zoom` parameter.
-
-## Docker
-
-```bash
-docker build . -t showmeplace
-docker run -it -v ./output:/showmeplace/output showmeplace ./showmeplace.py --overpass-request
-```
+You can use other satellite image providers (example in the file `shomewplace.py`). But in some places there may not be detailed images.
 
 # Theory
 
