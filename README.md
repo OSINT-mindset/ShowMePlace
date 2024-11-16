@@ -4,10 +4,12 @@ This tool shows satellite images for certain coordinates (latitude and longitude
 
 # Instructions
 0. Install Python 3.
-1. Create a mapbox account here: www.mapbox.com. 
-2. Once logged in, scroll down to Default Public Token. Copy it! You will need it in the `shomewplace.py` file
-3. Make sure you have downloaded and installed GeckoDriver in your computer in program or bin folder. You can get it here: https://github.com/mozilla/geckodriver/releases
+1. Install dependencies `pip install -r requirements.txt`
+2. Create a mapbox account here: www.mapbox.com. 
+3. Once logged in, scroll down to Default Public Token. Copy it! You will need it in the `shomewplace.py` file
 4. Run the showmeplace.py file
+
+You can use other satellite image providers (example in the file `shomewplace.py`). But in some places there may not be detailed images.
 
 # Theory
 
@@ -26,18 +28,16 @@ You must copy the prepared request in **Overpass => Export => Request** panel (w
 $ ./showmeplace.py --overpass-request
 Paste Overpass API request text, then enter END to run
 [out:json][timeout:800];
-(
-  nwr["addr:housenumber"="1832"](44.80230124552821,-93.52729797363281,45.22025894300122,-92.7252960205078);
-)->.house;
-
-(.house;);
-
-out geom;
+nwr["addr:housenumber"="1832"](44.80230124552821,-93.52729797363281,45.22025894300122,-92.7252960205078);
+out center;
 END
 
 Making request to Overpass API...
 ...
 ```
+
+> [!WARNING]
+> add the `center` argument to the `out` statement. This will speed up data processing and place the object in the center of the image.
 
 ## Simple execution without params from file
 
@@ -84,7 +84,7 @@ $ cat batch.txt
   nwr(around.tower:100)["highway"="stop"];
 )->.sign;
 
-out geom;
+out center geom;
 ```
 
 2. Generate N files for the bounding box from the request file batch.txt. You can copy bounding box coordinates from the Overpass interface by doing **Overpass => Export => Request**.

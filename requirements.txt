@@ -1,5 +1,9 @@
-folium==0.14.0
-overpy==0.6
-Pillow==9.4.0
-selenium==4.8.2
-tqdm==4.64.1
+certifi==2024.2.2
+charset-normalizer==3.3.2
+idna==3.7
+overpy==0.7
+pillow==10.3.0
+requests==2.31.0
+staticmap==0.5.7
+tqdm==4.66.2
+urllib3==2.2.1
